@@ -10,7 +10,7 @@ The second API is specifically for UV index. The application takes this query an
 
 Application also stores and displays the user's previous search. On click, the application will render the previous search again.
 
-Because so much of this assignment required careful formatting, I just had the script load as part of the index.html file.
+I had to tweak the formatting a lot so I just had the script load as part of the index.html file.
 
 I worry that perhaps the code in this assignment is messier than necessary, but I tried to include enough comments to improve readability. I might yet try and clean it up a bit.
 
