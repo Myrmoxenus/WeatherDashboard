@@ -1,13 +1,42 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+<html>
+
+<head>
+<!-- Jquery and Stylesheet-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>    
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<!-- Input Box for City Search -->
+<body>
+    <input type="text" id="citySearch" name="citySearch">
+
+<!-- Button to Initiate Search-->
+ <button type="button" onclick="weatherSearch()"id="searchButton">Search!</button>
+
+ <!--- Div for Containing Weather Cards-->
+<div id="cardContainer">
+</div>
+
+
+</div>
+
+
+</body>
+
+
 <script>
 
 function weatherSearch() {
     //user input
-    var cityName = "St. Louis"
+    var cityName = $("#citySearch").val()
     //appID and key
+    //Prepend to allow for testing despite CORS problem
+    var prepend = "https://cors-anywhere.herokuapp.com/"
     var key = "5ab7484869e87ef69020d31742bf3333"
-    var queryURL = "api.openweathermap.org/data/2.5/forecast?q=" + cityName + "&appid=" + key      
-    /*api.openweathermap.org/data/2.5/forecast?q={city name}&appid={API key}*/
+    var queryURL = prepend + "api.openweathermap.org/data/2.5/forecast?q=" + cityName + "&appid=" + key      
+    //EXAMPLE QUERY:          api.openweathermap.org/data/2.5/forecast?q={city name}&appid={API key}
     console.log(queryURL)      
     $.ajax({
         url: queryURL,
@@ -16,6 +45,35 @@ function weatherSearch() {
 
       .then(function(response) {
           console.log(response)
+          renderCards(response)
       })
     }
+
+// Creates a card from the API response and a time index
+function createCard(response, i){
+  var weatherCard = ""
+  weatherCard += '<div class="weatherCard" id="weatherCardDay' + i + '"> <p class="date">'
+    // Gives date, sliced to remove hours for cleanliness
+  weatherCard += response.list[i].dt_txt.slice(0, 10)
+  weatherCard += '</p>'
+    //Icons named according to weather API responses, renders image with name corresponsing to weather
+  weatherCard +='<img src="Images/' + response.list[i].weather[0].main + '.png" alt="' + response.list[i].weather[0].main + ' icon" class="weatherIcon"></img>'
+  weatherCard += '<p class="temp">'
+    // Takes temperature in Kelvin from API and converts it to Fahrenheit. &#8457 is the degrees symbol
+  weatherCard += "Temperature: " + Math.round(((response.list[i].main.temp -273.15)*(9/5))+32) + "&#8457" 
+  weatherCard += '</p>'
+  weatherCard += '<p class="humidity">'
+    //Takes humidity from API
+  weatherCard += "Humidity: " + response.list[i].main.humidity + '%'
+  weatherCard += '</p>'
+
+  $('#cardContainer').append(weatherCard)
+}
+
+function renderCards(response){
+// Iterations return weather at 9 am for the next 5 days.
+    for (i=2; i <= 34; i += 8){
+        createCard(response, i)
+    }
+}
 </script>

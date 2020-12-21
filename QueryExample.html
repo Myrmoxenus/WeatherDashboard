@@ -1,0 +1,22 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+
+function weatherSearch() {
+    //user input
+    var cityName = "St. Louis"
+    //appID and key
+    var prepend = "https://cors-anywhere.herokuapp.com/"
+    var key = "5ab7484869e87ef69020d31742bf3333"
+    var queryURL = prepend + "api.openweathermap.org/data/2.5/forecast?q=" + cityName + "&appid=" + key      
+    /*api.openweathermap.org/data/2.5/forecast?q={city name}&appid={API key}*/
+    console.log(queryURL)      
+    $.ajax({
+        url: queryURL,
+        method: "GET"
+      })
+
+      .then(function(response) {
+          console.log(response.city.country)
+      })
+    }
+</script>
