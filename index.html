@@ -8,19 +8,42 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
-<!-- Input Box for City Search -->
+
 <body>
-    <input type="text" id="citySearch" name="citySearch">
+<!-- Header Bar-->
+<header>
+  <h1>
+   Weather Dashboard 
+  </h1>
+</header>
+
+<!-- Sidebar -->
+<aside>
+<!-- Input Box for City Search -->
+
+<input type="text" id="citySearch" name="citySearch">
 
 <!-- Button to Initiate Search-->
- <button type="button" onclick="weatherSearch()"id="searchButton">Search!</button>
+<!-- Button Calls weatherSearch function with the content of the input box as an argument-->
+ <button type="button" onclick='weatherSearch($("#citySearch").val())' id="searchButton">
+<img src="Images/Search.png" height="15px" width="15px"></img>
+</button>
+<br>
+<!-- On click weatherSearch function with the text content currently stored in history-->
+<p id="previous"> Previous Search: </p>
+<p id="history" onclick='weatherSearch($("#history").text())'></p>
+</aside>
 
- <!--- Div for Containing Weather Cards-->
+<!-- Div for Current Day Weather Card-->
+<div id= "mainCardContainer">
+</div>
+
+<br style="clear:both" />
+
+<!-- Div for Containing 5-Day Forecast Weather Cards-->
 <div id="cardContainer">
 </div>
 
-
-</div>
 
 
 </body>
@@ -28,9 +51,21 @@
 
 <script>
 
-function weatherSearch() {
+//Makes search feature activate when pressing "Enter", credit WC3 Schools
+// Get the input field
+var input = document.getElementById("citySearch")
+
+// Execute a function when the user releases a key on the keyboard
+input.addEventListener("keyup", function(event) {
+  // Number 13 is the "Enter" key on the keyboard
+  if (event.keyCode === 13) {
+    document.getElementById("searchButton").click()
+  }
+})
+
+function weatherSearch(cityName) {
     //user input
-    var cityName = $("#citySearch").val()
+    var cityName = cityName
     //appID and key
     //Prepend to allow for testing despite CORS problem
     var prepend = "https://cors-anywhere.herokuapp.com/"
@@ -44,8 +79,55 @@ function weatherSearch() {
       })
 
       .then(function(response) {
-          console.log(response)
+        //Empties divs in case of subsequent searches
+        $("#mainCardContainer").empty()
+        $("#cardContainer").empty()
+          renderMainCard(response)
           renderCards(response)
+          UVindexSearch(response)
+        //Saves search to local storage and displays previous search
+          $("#history").empty()
+          $('#history').append(localStorage.getItem("prevSearch"))
+          localStorage.setItem("prevSearch", cityName);
+
+      })
+    }
+
+//Calls UVIndex API and Appends response to correct #uvIndex ptag
+function UVindexSearch(response){
+    //Coordinates from weatherSearch() query
+    var lat = Math.round(100*(response.city.coord.lat))/100  
+    var lon = Math.round(100*(response.city.coord.lon))/100 
+    //appID and key
+    //Prepend to allow for testing despite CORS problem
+    var prepend = "https://cors-anywhere.herokuapp.com/"
+    var key = "5ab7484869e87ef69020d31742bf3333"
+    var queryURL = prepend + "http://api.openweathermap.org/data/2.5/uvi?lat=" + lat + "&lon=" + lon + "&appid=" + key      
+    //EXAMPLE QUERY:          http://api.openweathermap.org/data/2.5/uvi?lat={lat}&lon={lon}&appid={API key}
+    console.log(queryURL)      
+    $.ajax({
+        url: queryURL,
+        method: "GET",
+      })
+
+      .then(function(response) {
+         UVindex = response.value
+         //Appends UV Index value and assigns a background color based on information from https://19january2017snapshot.epa.gov/sunsafety/uv-index-scale_.html
+         $('#UVindex').append(UVindex)
+         if(UVindex <= 2){
+         $("#UVindex").css("background-color", "green")
+         }
+         else if(UVindex >= 3 && UVindex <= 5) {
+         $("#UVindex").css("background-color", "yellow")
+         }
+         else if(UVindex >= 6 && UVindex <= 7) {
+         $("#UVindex").css("background-color", "orange")
+         }
+         else if(UVindex >= 8 && UVindex <= 10) {
+         $("#UVindex").css("background-color", "red")
+         }
+         else if(UVindex >= 11)
+         $("#UVindex").css("background-color", "violet")
       })
     }
 
@@ -70,10 +152,28 @@ function createCard(response, i){
   $('#cardContainer').append(weatherCard)
 }
 
+//Renders 5 day forecast cards
 function renderCards(response){
 // Iterations return weather at 9 am for the next 5 days.
     for (i=2; i <= 34; i += 8){
         createCard(response, i)
     }
 }
+
+//Renders main card
+function renderMainCard(response){
+  //UVindex = UVindexSearch(response)
+  mainCard = ""
+  mainCard += '<div id="mainCard">'
+  mainCard += '<p id="cityName">' + response.city.name + '</p>'
+  mainCard +='<img src="Images/' + response.list[2].weather[0].main + '.png" alt="' + response.list[2].weather[0].main + ' icon" class="weatherIcon"></img>'
+  mainCard += '<p class="temp">' + "Temperature: " + Math.round(((response.list[2].main.temp -273.15)*(9/5))+32) + "&#8457" + '</p>'
+  mainCard += '<p class="humidity">' + "Humidity: " + response.list[2].main.humidity + "%" +'</p>'
+  mainCard += '<p class="windspeed">' + "Windspeed: " + response.list[2].wind.speed + " MPH" + '</p>'
+  mainCard += '<p class="UVindex" id="UVindex"> UV Index: </p>'
+  mainCard += '</div>'
+
+  $('#mainCardContainer').append(mainCard)
+}
+
 </script>
